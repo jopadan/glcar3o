@@ -26,20 +26,20 @@ typedef    float f32;
 
 #pragma pack(push,1)
 typedef struct {
-    u16    vi[4];
-    u16 uv[4][2];
-    u16     next;
-    u16  distant;
-    u8     group;
-    u8     flags;
-    u8    uv_off;
+	u16    vi[4];
+	u16 uv[4][2];
+	u16     next;
+	u16  distant;
+	u8     group;
+	u8     flags;
+	u8    uv_off;
 } face;
 
 typedef struct {
 union
 {
-    struct { i16 x,y,z; };
-    i16 xyz[3];
+	struct { i16 x,y,z; };
+	i16 xyz[3];
 };
 } i16x3;
 
