@@ -296,8 +296,25 @@ model* csm_model_reset(model* dst)
 			free(dst->data);
 			dst->data = NULL;
 		}
+		dst->c3o         = NULL;
+		dst->car         = NULL;
+		dst->tdata       = NULL;
+		dst->anim_frames = NULL;
+		dst->frame_count  0;
+		dst->fmt = CHASM_FORMAT_NONE;
+		dst->len = 0;
+
 		memset(dst, sizeof(model), 0);
-		dst->tw    = 64;
+		dst->tw    =   64;
+		dst->th    =    0;
+		dst->tdim  =    0;
+		dst->pal   = NULL;
+		dst->trgba = NULL:
+		dst->anim_count = 0;
+		dst->anim_current = 0;
+		dst->anim_frame_idx = 0;
+		memset(dst->name, 32, '\0');
+		memset(dst->anims, 20 * sizeof(anim_info), 0);
 
 		if(dst->trgba)
 		{
