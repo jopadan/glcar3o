@@ -26,13 +26,13 @@ typedef    float f32;
 
 #pragma pack(push,1)
 typedef struct {
-    uint16_t vi[4];
-    uint16_t uv[4][2];
-    uint16_t next;
-    uint16_t distant;
-    uint8_t  group;
-    uint8_t  flags;
-    uint16_t uv_off;
+    u16    vi[4];
+    u16 uv[4][2];
+    u16     next;
+    u16  distant;
+    u8     group;
+    u8     flags;
+    u8    uv_off;
 } face;
 
 typedef struct {
@@ -153,14 +153,14 @@ typedef struct config
 config settings;
 #pragma pack(pop)
 
-size_t acc(uint16_t* src, size_t cnt, size_t init)
+size_t acc(u16* src, size_t cnt, size_t init)
 {
 	for(size_t i = 0; i < cnt; i++)
 		init += src[i];
 	return init;
 }
 
-u8x4* tpal2rgba(uint8_t* buf, size_t len, palette* pal)
+u8x4* tpal2rgba(u8* buf, size_t len, palette* pal)
 {
 	if(buf == NULL || pal == NULL || len <= 0) return NULL;
 
