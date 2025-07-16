@@ -131,7 +131,7 @@ typedef struct model
 	/* content description */
 	enum format       fmt;
 	size_t            len;
-	const char   name[32];
+	char         name[32];
 	u16                th;
 	u16                tw;
 	u16              tdim;
@@ -300,7 +300,7 @@ model* csm_model_reset(model* dst)
 		dst->car         = NULL;
 		dst->tdata       = NULL;
 		dst->anim_frames = NULL;
-		dst->frame_count  0;
+		dst->frame_count = 0;
 		dst->fmt = CHASM_FORMAT_NONE;
 		dst->len = 0;
 
@@ -309,7 +309,7 @@ model* csm_model_reset(model* dst)
 		dst->th    =    0;
 		dst->tdim  =    0;
 		dst->pal   = NULL;
-		dst->trgba = NULL:
+		dst->trgba = NULL;
 		dst->anim_count = 0;
 		dst->anim_current = 0;
 		dst->anim_frame_idx = 0;
