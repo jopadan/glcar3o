@@ -1,6 +1,5 @@
 # glcar3o
-Chasm: The Rift 3D .car/.3o animation model OpenGL viewer written in C23
-
+Chasm: The Rift 3D .[CAR](https://github.com/jopadan/glcar3o/wiki/CAR-CARacter-animation-model-format)/.[3O](https://github.com/jopadan/glcar3o/wiki/3O-3D-Object-model-format) animation model [OpenGL](https://www.gopengl.org/) viewer written in [C23](https://www.open-std.org/jtc1/sc22/wg14/)
 ## Usage
 ```sh
 ./glcar3o assets/hog.car
