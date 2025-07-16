@@ -6,11 +6,13 @@ extern "C" {
 #include <cstddef>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #else
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #endif
 #include <sys/stat.h>
 
@@ -294,15 +296,9 @@ model* csm_model_reset(model* dst)
 			free(dst->data);
 			dst->data = NULL;
 		}
-		dst->tdata = NULL;
-		dst->fmt   = CHASM_FORMAT_NONE;
-		dst->len   = 0;
-		dst->car   = NULL;
-		dst->c3o   = NULL;
+		memset(dst, sizeof(model), 0);
 		dst->tw    = 64;
-		dst->th    = 0;
-		dst->pal    = NULL;
-		dst->tdim  = 0;
+
 		if(dst->trgba)
 		{
 			free(dst->trgba);
