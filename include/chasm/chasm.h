@@ -15,6 +15,8 @@ extern "C" {
 #include <string.h>
 #endif
 #include <sys/stat.h>
+#include <GL/gl.h>
+#include <GL/glcorearb.h>
 
 typedef uint32_t u32;
 typedef  int32_t i32;
@@ -32,7 +34,7 @@ typedef struct {
 	u16  distant;
 	u8     group;
 	u8     flags;
-	u8    uv_off;
+	u16   uv_off;
 } face;
 
 typedef struct {
@@ -126,15 +128,14 @@ typedef struct model
 	/* pointer to post header suffix tail */
 	u8*             tdata;
 	i16x3*    anim_frames;
-	size_t    frame_count;
-
 	/* content description */
+	size_t    frame_count;
 	enum format       fmt;
 	size_t            len;
 	char         name[32];
-	u16                th;
-	u16                tw;
-	u16              tdim;
+	GLsizei            th;
+	GLsizei            tw;
+	GLsizei          tdim;
 	palette*          pal;
 	u8x4*           trgba;
 	anim_info   anims[20];
@@ -263,7 +264,7 @@ void csm_model_format_print(enum format fmt)
 }
 
 
-enum format csm_model_format(uint8_t* buf, size_t len)
+enum format csm_model_format(const u8* buf, size_t len)
 {
 	size_t       hdr_len = sizeof(c3o_header);
 	const size_t car_len = sizeof(car_header) - hdr_len;
@@ -273,6 +274,7 @@ enum format csm_model_format(uint8_t* buf, size_t len)
 
 	if(buf != NULL && len > 0)
 	{
+		printf("%zu + %zu / %zu\n", hdr_len, (size_t)c3o->th, len);
 		if(hdr_len + c3o->th * tw == len)
 			return CHASM_FORMAT_3O;
 
@@ -280,6 +282,7 @@ enum format csm_model_format(uint8_t* buf, size_t len)
 		tw       = csm_model_car_frame_count(car);
 		tw      += csm_model_car_sfx_len(car);
 
+		printf("%zu + %zu\n", hdr_len, (size_t)car->th);
 		if(hdr_len + car->th + tw == len)
 			return CHASM_FORMAT_CAR;
 	}
@@ -296,25 +299,8 @@ model* csm_model_reset(model* dst)
 			free(dst->data);
 			dst->data = NULL;
 		}
-		dst->c3o         = NULL;
-		dst->car         = NULL;
-		dst->tdata       = NULL;
-		dst->anim_frames = NULL;
-		dst->frame_count = 0;
-		dst->fmt = CHASM_FORMAT_NONE;
-		dst->len = 0;
-
-		memset(dst, sizeof(model), 0);
-		dst->tw    =   64;
-		dst->th    =    0;
-		dst->tdim  =    0;
-		dst->pal   = NULL;
-		dst->trgba = NULL;
-		dst->anim_count = 0;
-		dst->anim_current = 0;
-		dst->anim_frame_idx = 0;
-		memset(dst->name, 32, '\0');
-		memset(dst->anims, 20 * sizeof(anim_info), 0);
+		memset(dst, sizeof(model), 1);
+		dst->tw             = 64;
 
 		if(dst->trgba)
 		{
@@ -326,7 +312,7 @@ model* csm_model_reset(model* dst)
 	return dst;
 }
 
-model csm_model_create(uint8_t* buf, size_t len)
+model csm_model_create(u8* buf, size_t len)
 {
 	model dst = { .data = buf, .len = len };
 	if(dst.data == NULL && dst.len <= 0) return dst;
@@ -383,7 +369,7 @@ model csm_model_create_fn(const char* filename)
 
 	/* allocate memory for model data */
 	dst.len    = sb.st_size;
-	dst.data   = (uint8_t*)calloc(dst.len, 1);
+	dst.data   = (u8*)calloc(dst.len, 1);
 	/* read file contents */
 	FILE* fp = fopen(filename, "rb");
 	long err = fread(dst.data, dst.len, 1, fp);
