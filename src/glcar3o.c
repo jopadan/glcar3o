@@ -6,7 +6,8 @@ int main(int argc, char** argv)
 	if(argc <= 1) exit(EXIT_FAILURE);
 
 	/* load default palette */
-	settings.pal = csm_palette_create_fn("chasmpalette.act");
+	settings.pal = csm_palette_create_fn("assets/chasmpalette.act");
+	if(settings.pal == NULL) exit(EXIT_FAILURE);
 
 	/* load model */
 	model mdl = csm_model_create_fn(argv[1]);
