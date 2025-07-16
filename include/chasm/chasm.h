@@ -274,7 +274,6 @@ enum format csm_model_format(const u8* buf, size_t len)
 
 	if(buf != NULL && len > 0)
 	{
-		printf("%zu + %zu / %zu\n", hdr_len, (size_t)c3o->th, len);
 		if(hdr_len + c3o->th * tw == len)
 			return CHASM_FORMAT_3O;
 
@@ -282,7 +281,6 @@ enum format csm_model_format(const u8* buf, size_t len)
 		tw       = csm_model_car_frame_count(car);
 		tw      += csm_model_car_sfx_len(car);
 
-		printf("%zu + %zu\n", hdr_len, (size_t)car->th);
 		if(hdr_len + car->th + tw == len)
 			return CHASM_FORMAT_CAR;
 	}
