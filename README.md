@@ -7,6 +7,10 @@ Chasm: The Rift 3D .car/.3o animation model OpenGL viewer written in C23
 [NFO][PAL] assets/chasmpalette.act
 [NFO][MDL] anim_count: 9 frame_count: 175440
 [NFO][FMT] .CAR - Chasm: The Rift CARacter animation model
+
+./glcar3o assets/m-star.3o
+[NFO][PAL] assets/chasmpalette.act
+[NFO][FMT] .3O  - Chasm: The Rift 3O model
 ```
 ## Example
 ```c
