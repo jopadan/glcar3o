@@ -1,5 +1,5 @@
 # glcar3o
-[Chasm: The Rift 3D](https://github.com/jopadan/AwesomeChasm/) .[CAR](https://github.com/jopadan/glcar3o/wiki/CAR-CARacter-Animation-Model-Format-Reference)/.[3O](https://github.com/jopadan/glcar3o/wiki/3O-3D-Object-Model-Format-Reference) animation model [OpenGL](https://www.gopengl.org/) viewer written in [C23](https://www.open-std.org/jtc1/sc22/wg14/)
+[Chasm: The Rift 3D](https://github.com/jopadan/AwesomeChasm/) .[CAR](https://github.com/jopadan/glcar3o/wiki/CAR)/.[3O](https://github.com/jopadan/glcar3o/wiki/3O) animation model [OpenGL](https://www.gopengl.org/) viewer written in [C23](https://www.open-std.org/jtc1/sc22/wg14/)
 ## Usage
 ```sh
 ./glcar3o assets/hog.car
