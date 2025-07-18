@@ -11,6 +11,8 @@
 ./glcar3o assets/m-star.3o
 [NFO][PAL] assets/chasmpalette.act
 [NFO][FMT] .3O  - Chasm: The Rift 3O model
+
+./3oviewer assets/m-star.3o assets/m-star.ani
 ```
 ## Example
 

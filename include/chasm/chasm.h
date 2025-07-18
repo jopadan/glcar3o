@@ -28,13 +28,10 @@ typedef    float f32;
 
 #pragma pack(push,1)
 typedef struct {
-	u16    vi[4];
-	u16 uv[4][2];
-	u16     next;
-	u16  distant;
-	u8     group;
-	u8     flags;
-	u16   uv_off;
+	struct      { u16    vi[4]; u16 uv[4][2]; };
+	struct Link { u16     next; u16  distant; } link;
+	struct Conf { u8     group; u8     flags; } conf;
+	struct      { u16   uv_off;               };
 } face;
 
 typedef struct {
@@ -72,17 +69,9 @@ union
 typedef u8x3 palette[256];
 
 typedef struct {
-	struct animap {
-		u16 model[20];
-		u16 sub_model[6][2];
-	} anims;
-	struct gsnd {
-		u16 id[3];
-	} gsnd;
-	struct sfx {
-		u16 len[8];
-		u16 vol[8];
-	} sfx;
+	struct AniMap { uint16_t model[20]; uint16_t sub_model[6][2]; } anims;
+	struct GSND   { uint16_t id[3];                              } gsnd;
+	struct SFX    { uint16_t len[8];    uint16_t vol[8];         } sfx;
 	face   faces[400];
 	i16x3  overt[256];
 	i16x3  rvert[256];

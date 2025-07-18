@@ -20,19 +20,16 @@
 
 #pragma pack(push,1)
 typedef struct {
-    uint16_t animations[20];
-    uint16_t submodels_animations[3][2];
-    uint16_t unknown0[9];
-    uint16_t sounds[7];
-    uint16_t unknown1[9];
+    struct AniMap { uint16_t model[20]; uint16_t submodel[6][2]; } anims;
+    struct GSND   { uint16_t id[3];                              } gsnd;
+    struct SFX    { uint16_t len[8];    uint16_t vol[8];         } sfx;
 } CARHeader;
 
 typedef struct {
-    uint16_t vertices_indices[4];
-    uint16_t uv[4][2];
-    uint8_t unknown0[4];
-    uint8_t group_id, flags;
-    uint16_t v_offset;
+    struct      { uint16_t vi[4]; uint16_t uv[4][2]; };
+    struct Link { uint16_t  next; uint16_t distant;  } link;
+    struct Conf {  uint8_t group;  uint8_t flags;    } conf;
+    struct      { uint16_t uv_offset;                };
 } CARPolygon;
 
 typedef struct { int16_t xyz[3]; } Vertex;
@@ -115,7 +112,7 @@ void load_car_model(const char *fn) {
     CARHeader *hdr=(CARHeader*)rawData;
     size_t off=0; animCount=0;
     for(int i=0;i<20;i++){
-        uint16_t b=hdr->animations[i];
+        uint16_t b=hdr->anims.model[i];
         if(b){
             size_t n=b/(vertexCount*sizeof(Vertex));
             anims[animCount].start=off;
@@ -158,10 +155,10 @@ void load_car_model(const char *fn) {
     modelCenterZ=(minZ+maxZ)*0.5f;
 
     // build WAV buffers and apply volume factor
-    uint32_t totalBytes=0; for(int b=0;b<7;b++) totalBytes+=hdr->sounds[b];
+    uint32_t totalBytes=0; for(int b=0;b<8;b++) totalBytes+=hdr->sfx.len[b];
     long audio_off=rawSize-totalBytes, pos=audio_off;
-    for(int b=0;b<7;b++){
-        uint16_t len=hdr->sounds[b];
+    for(int b=0;b<8;b++){
+        uint16_t len=hdr->sfx.len[b];
         if(len){
             uint32_t ws=44+len;
             uint8_t *buf=malloc(ws);
@@ -236,7 +233,7 @@ void drawModelInfo(){
     buf[0]=0; strcat(buf,"Animations: ");
     first=1;
     for(int i=0;i<20;i++){
-        if(((CARHeader*)rawData)->animations[i]){
+        if(((CARHeader*)rawData)->anims.model[i]){
             char n[8]; sprintf(n,"%s%d",first?"":"",i);
             if(!first) strcat(buf,",");
             strcat(buf,n);
@@ -248,7 +245,7 @@ void drawModelInfo(){
     buf[0]=0; strcat(buf,"Sounds: ");
     first=1;
     for(int i=0;i<7;i++){
-        if(((CARHeader*)rawData)->sounds[i]){
+        if(((CARHeader*)rawData)->sfx.len[i]){
             char n[8]; sprintf(n,"%s%d",first?"":"",i);
             if(!first) strcat(buf,",");
             strcat(buf,n);
@@ -281,25 +278,25 @@ void display(void){
     for(size_t i=0;i<polygonCount;i++){
         CARPolygon *p=&polygons[i];
         for(int v=0;v<3;v++){
-            int vi=p->vertices_indices[v];
+            int vi=p->vi[v];
             int16_t *pv0=animationFrames[f0*vertexCount+vi].xyz;
             int16_t *pv1=animationFrames[f1*vertexCount+vi].xyz;
             float x=(1-alpha)*pv0[0]+alpha*pv1[0];
             float y=(1-alpha)*pv0[1]+alpha*pv1[1];
             float z=(1-alpha)*pv0[2]+alpha*pv1[2];
-            glTexCoord2f(p->uv[v][0]/(float)(texWidth<<8),(p->uv[v][1]+4*p->v_offset)/(float)(texHeight<<8));
+            glTexCoord2f(p->uv[v][0]/(float)(texWidth<<8),(p->uv[v][1]+4*p->uv_offset)/(float)(texHeight<<8));
             glVertex3f(x*SCALE,y*SCALE,z*SCALE);
         }
-        if(p->vertices_indices[3]<(int)vertexCount){
+        if(p->vi[3]<(int)vertexCount){
             int ord[3]={0,2,3};
             for(int v=0;v<3;v++){
-                int vi=p->vertices_indices[ord[v]];
+                int vi=p->vi[ord[v]];
                 int16_t *pv0=animationFrames[f0*vertexCount+vi].xyz;
                 int16_t *pv1=animationFrames[f1*vertexCount+vi].xyz;
                 float x=(1-alpha)*pv0[0]+alpha*pv1[0];
                 float y=(1-alpha)*pv0[1]+alpha*pv1[1];
                 float z=(1-alpha)*pv0[2]+alpha*pv1[2];
-                glTexCoord2f(p->uv[ord[v]][0]/(float)(texWidth<<8),(p->uv[ord[v]][1]+4*p->v_offset)/(float)(texHeight<<8));
+                glTexCoord2f(p->uv[ord[v]][0]/(float)(texWidth<<8),(p->uv[ord[v]][1]+4*p->uv_offset)/(float)(texHeight<<8));
                 glVertex3f(x*SCALE,y*SCALE,z*SCALE);
             }
         }
@@ -307,8 +304,8 @@ void display(void){
     glEnd();
 
     if(overlayEnabled){
-        drawOverlay();
-        drawModelInfo();
+       // drawOverlay();
+       // drawModelInfo();
     }
 
     glutSwapBuffers();
@@ -434,7 +431,7 @@ int main(int argc,char**argv){
     glutInit(&argc,argv);
     glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH);
     glutInitWindowSize(winWidth,winHeight);
-    glutCreateWindow("Chasm The Rift CAR Viewer v1.9.3 by SMR9000");
+    glutCreateWindow("Chasm The Rift CAR Viewer v1.9.4 by SMR9000");
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
