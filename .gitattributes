@@ -4,4 +4,6 @@
 *.hxx linguist-Language=C++
 *.cpp linguist-language=C++
 *.cxx linguist-language=C++
+*.S linguist-language=asm
+*.asm linguist-language=asm
 
