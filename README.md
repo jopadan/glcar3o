@@ -29,3 +29,4 @@ model hog = csm_model_create_fn("assets/hog.car");
 - [AwesomeChasm](https://github.com/jopadan/AwesomeChasm/)
 - [The Shadow Zone](https://discord.com/channels/768103789411434586/1374778669612007527)
   - [Chasm Modding Toolkit Package](https://discord.com/channels/768103789411434586/1374842906002718803)
+- [meshoptimizer](https://github.com/zeux/meshoptimizer/)
