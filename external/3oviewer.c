@@ -56,12 +56,12 @@ static const float SCALE3O = 1.0f/2048.0f;
 
 #pragma pack(push,1)
 typedef struct {
-    uint16_t vi[4];
-    uint16_t uv[4][2];
-    uint8_t  pad[4];
-    uint8_t  group, flags;
-    int16_t  uv_off;
+    struct      { uint16_t vi[4]; uint16_t uv[4][2]; };
+    struct link { uint16_t  next; uint16_t  distant; } link;
+    struct conf {  uint8_t group;  uint8_t    flags; } conf;
+    struct      {  int16_t uv_off;                   };
 } POLY;
+
 typedef struct { int16_t x,y,z; } VERT;
 #pragma pack(pop)
 
@@ -240,7 +240,7 @@ static void display(){
 	// Bit counts
 	int cnt[8] = {0};
 	for(int i=0;i<pcount;i++){
-		uint8_t f = polys[i].flags;
+		uint8_t f = polys[i].conf.flags;
 		for(int b=0;b<8;b++) if(f&(1<<b)) cnt[b]++;
 	}
 
@@ -290,7 +290,7 @@ static void display(){
 		for(int i = 0; i < pcount; i++)
 		{
 			POLY *P = &polys[i];
-			uint8_t f = P->flags;
+			uint8_t f = P->conf.flags;
 			if(skipPoly(f, isTrans)) continue;
 
 			if(isTrans){
