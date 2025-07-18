@@ -117,7 +117,20 @@ typedef struct anim_info
 	size_t start;
 	size_t count;
 } anim_info;
+/*
+typedef struct ani_file
+{
+	size_t len;
+	u8*    buf;
+	size_t off; 
+	size_t cnt;
+	i16x3* vtx;
+	GLsizei f[2];
+	f32 alpha;
+	i16x3* v[2];
+} ani_file;
 
+*/
 typedef struct model
 {
 	/* raw file data */
@@ -130,6 +143,7 @@ typedef struct model
 	i16x3*    anim_frames;
 	/* content description */
 	size_t    frame_count;
+	size_t    total_frames;
 	enum format       fmt;
 	size_t            len;
 	char         name[32];
@@ -146,14 +160,51 @@ typedef struct model
 
 typedef struct config
 {
+	bool do_cull;
+	bool use_linear;
+	bool shading;
+	bool wireframe;
+	bool interpolate_frames;
 	bool draw_ortho2d;
 	bool draw_perspective;
 	palette* pal;
+	GLsizei w;
+	GLsizei h;
 } config;
 
 config settings;
 #pragma pack(pop)
+/*
+ani_file* csm_model_ani_update(model* model, size_t i)
+{
+	ani_file* ani = model->ani;
+	ani->f[0]  = ani->cnt ? i % ani->cnt : 0;
+	ani->f[1]  = ani->cnt ? (f[0]+1) % ani->cnt : 0;
+	ani->alpha = (playing && settings->interpolated_frames && ani->cnt) ? settings->timer->dt / settings->timer->frame_duration : 0;
+	ani->v[0] = ani->cnt ? ani->vtx + ani->f[0] * model->c3o->vcount : model->c3o->overt;
+	ani->v[1] = ani->cnt ? ani->vtx + ani->f[1] * model->c3o->vcount : model->c3o->overt;
+	return ani;
+}
 
+ani_file* csm_model_ani_create_fn(const char* filename, size_t vcount)
+{
+	struct stat sb;
+	if(filename == NULL || stat(filename, &sb) != 0 || !(sb.st_size > 0)) return NULL;
+
+	FILE* fp = fopen(fn, "rb");
+	if(fp == NULL) return NULL;
+
+	ani_file dst = { .len = sb.st_size, .buf = (u8*)calloc(dst->len, 1) };
+	long err = fread(dst->buf, dst->len, 1, fp);
+	fclose(fp);
+
+	if(err != 1) { free(dst->buf); return NULL; };
+	dst->off    = (*(u16*)dst->buf == vcount) ? 2 : 0;
+	dst->frames = (dst->len - off) / (sizeof(i16x3) * vcount);
+	dst->verts  = (i16x3*)(dst->buf + off);
+	return dst;
+}
+*/
 size_t acc(u16* src, size_t cnt, size_t init)
 {
 	for(size_t i = 0; i < cnt; i++)
@@ -208,6 +259,7 @@ palette* csm_palette_delete(palette* pal)
 	}
 	return pal;
 }
+
 
 size_t csm_model_car_frame_count(car_header* hdr)
 {

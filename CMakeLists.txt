@@ -35,4 +35,11 @@ target_include_directories( glcar3o PUBLIC
 
 target_link_libraries( glcar3o PUBLIC m OpenGL::GL OpenGL::GLU glut)
 
+add_executable( 3oviewer external/3oviewer121.c )
+target_include_directories( 3oviewer PUBLIC
+        PUBLIC_HEADER $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+target_link_libraries( 3oviewer PUBLIC m OpenGL::GL OpenGL::GLU glut)
+
 install(TARGETS glcar3o DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT EXECUTABLES)
