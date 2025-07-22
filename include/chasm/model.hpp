@@ -1,6 +1,6 @@
 #pragma once
 
-#include <chasm/model.hpp>
+#include <chasm/format.hpp>
 
 namespace chasm
 {
