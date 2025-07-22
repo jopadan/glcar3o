@@ -39,7 +39,7 @@ struct car
 	                          for(size_t i = 0; i < sub.size(); i++)
 	                                if(acc(sub[i].cbegin(), sub[i].cend(), (size_t)0) > 0)
 	                                     dst += dst + sizeof(struct c3o);
-			          return dst;                                                  }} ani;
+	                          return dst;                                                  }} ani;
 
 	struct GSND             { u16x3 id;                                                     } gsnd;
 	struct SFX              { u16x8 len; u16x8 vol;                                         }
