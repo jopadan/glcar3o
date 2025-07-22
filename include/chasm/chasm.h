@@ -70,8 +70,8 @@ typedef u8x3 palette[256];
 
 typedef struct {
 	struct AniMap { uint16_t model[20]; uint16_t sub_model[6][2]; } anims;
-	struct GSND   { uint16_t id[3];                              } gsnd;
-	struct SFX    { uint16_t len[8];    uint16_t vol[8];         } sfx;
+	struct GSND   { uint16_t id[3];                               } gsnd;
+	struct SFX    { uint16_t len[8];    uint16_t vol[8];          } sfx;
 	face   faces[400];
 	i16x3  overt[256];
 	i16x3  rvert[256];
@@ -290,7 +290,7 @@ size_t csm_model_car_anim_count(model* hdr)
 	}
 	hdr->anim_current   = 0;
 	hdr->anim_frame_idx = 0;
-	printf("[NFO][MDL] anim_count: %zu frame_count: %zu\n", hdr->anim_count, hdr->frame_count);
+	printf("[NFO][MDL] anim_count: %zu frame_count: %zu sfx_count: %zu\n", hdr->anim_count, hdr->frame_count, csm_model_car_sfx_len(hdr->car));
 	return hdr->anim_count;
 }
 
@@ -315,6 +315,7 @@ enum format csm_model_format(const u8* buf, size_t len)
 
 	if(buf != NULL && len > 0)
 	{
+		printf("%zX %zX %zX\n", sizeof(c3o_header), len, hdr_len + c3o->th * tw);
 		if(hdr_len + c3o->th * tw == len)
 			return CHASM_FORMAT_3O;
 

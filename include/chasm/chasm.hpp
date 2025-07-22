@@ -1,223 +1,69 @@
 #pragma once
 
-namespace chasm
-{
+#include <chasm/model.hpp>
 
-static const uint16_t OFF_POLY   0x0000
-static const uint16_t OFF_VERT   0x3200
-static const uint16_t OFF_VCNT   0x4800
-static const uint16_t OFF_PCNT   0x4802
-static const uint16_t OFF_SKH    0x4804
-static const uint16_t OFF_SKIN   0x4806
-static const uint16_t SKIN_W     64
-static const    float SCALE3O  = 1.0f/2048.0f;
 
-enum class align
+/*
+size_t csm_model_car_anim_count(model* hdr)
 {
-	none     = 0 << 0,
-	scalar   = 1 << 0,
-	vector   = 1 << 1,
-	matrix   = 1 << 2,
-	adaptive = 1 << 3,
-};
-
-template<typename t, size_t n, enum align a = align::adaptive, size_t n_pow2 = std::bit_ceil<size_t>(n)>
-struct alignas(n == n_pow2 || a == align::vector && a != align::scalar ? n_pow2 : n) array : std::array<t, n>
-{
-};
-
-template<typename t, size_t n, enum align a = align::adaptive, size_t n_pow2 = std::bit_ceil<size_t>(n)>
-struct vertex : array<t, n, a>
-{
-	t x() requires(n > 0) { return (*this)[0]; }
-	t y() requires(n > 1) { return (*this)[1]; }
-	t z() requires(n > 2) { return (*this)[2]; }
-	t w() requires(n > 3) { return (*this)[3]; }
-};
-
-template<typename T = vertex<uint8_t, 3>, size_t N = 256>
-struct palette : array<T,N>
-{
-	palette(uint8_t* src)
+	hdr->frame_count = csm_model_car_frame_count(hdr->car);
+	size_t off = 0;
+	for(size_t i = 0; i < 20; i++)
 	{
-		if(src != nullptr)
-			for(size_t i = 0; i < N; i++)
-				(*this)[i] = { src[i * 3 + 0], src[i * 3 + 1], src[i * 3 + 2] };
-	}
-	palette(std::filesystem::path& src)
-	{
-		size_t len = std::filesystem::file_size(src);
-		if(std::filesystem::file_exists(src) && len > 0)
-		ifstream ifs(src);
-		if(ifs.is_open())
+		uint16_t b = hdr->car->anims.model[i];
+		if(b)
 		{
-			for(size_t i = 0; i < 256; i++)
-			{
-				ifs >> std::noskipws >> (*this)[i][0];
-				ifs >> std::noskipws >> (*this)[i][1];
-				ifs >> std::noskipws >> (*this)[i][2];
-			}
-			ifs.close();
+			size_t n = b / (hdr->car->vcount * sizeof(i16x3));
+			hdr->anims[hdr->anim_count].start = off;
+			hdr->anims[hdr->anim_count].count = n;
+			off += n; hdr->anim_count++;
 		}
 	}
-};
-
-template<GLsizei width = 64>
-struct palette_image : std::vector<array<uint8_t, width>>
-{
-	struct palette& pal;
-	array<GLsizei, 256> hist;
-	uint8_t bg_index = 0;
-	uint8_t default_bg_index = 0;
-	palette_image(uint8_t* buf, size_t len, const struct palette& pal) : std::vector<array<uint8_t,width>>(len / width)
+	if(hdr->anim_count == 0)
 	{
-		assert(len == width * this->size());
-		for(size_t i = 0; i < this->size(); i++)
-			for(size_t j = 0; j < width; j++)
-				(*this)[i][j] = buf[i * width + j];
+		hdr->anims[0].start = 0;
+		hdr->anims[0].count = hdr->frame_count;
+		hdr->anim_count = 1;
 	}
-	vertex<uint8_t, 4> rgba(size_t i, size_t j)
-	{
-		assert((i < this->size()) && (j < width));
-		const uint8_t c = (*this)[i][j];
-		return { pal[c][0], pal[c][1], pal[c][2], c == 4 ? 0 : 255 };
-	}
-	uint8_t update_hist()
-	{
-		for(const uint8_t i : std::make_index_sequence<256>{})
-			hist[i] = std::count(this->cbegin, this->cend(), i);
-		// Dominant BG color
-		auto max_it = std::max_element(hist.cbegin(), hist.cend());
-		default_bg_index = (uint8_t)std::distance(hist.cbegin(),max_it);
-		return default_bg_index;
-	}
-	operator texture<width>()
-	{
-		return texture<64> dst(*this);
-	}
+	hdr->anim_current   = 0;
+	hdr->anim_frame_idx = 0;
+	printf("[NFO][MDL] anim_count: %zu frame_count: %zu\n", hdr->anim_count, hdr->frame_count);
+	return hdr->anim_count;
 }
+file.c3o()[
 
-template<GLsizei width = 64>
-struct texture : std::vector<array<vertex<uint8_t, 4>, width>>
-{
-	GLuint id;
-	texture(const palette_image& src)
-	{
-		assert(src[0].size() == width);
-		this->resize(src.size());
-		// Build RGBA skin texture
-		for(size_t i = 0; i < src.size(); i++)
-			for(size_t j = 0; j < src[i].size(); j++)
-				(*this)[i][j] = src.rgba(i,j);
-	}
-	bind()
-	{
-		glGenTextures(1, &id);
-		glBindTexture(GL_TEXTURE_2D, id);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, this->size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, this->data());
-	}
-	update_filter()
-	{
-		glBindTexture(GL_TEXTURE_2D, id);
-		GLint f = options->useLinear ? GL_LINEAR : GL_NEAREST;
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,f);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,f);
-	}
-}
-
-struct face
-{
-	vertex<uint16_t, 4>               vi;
-	array<vertex<uint16_t, 2>, 4>     uv;
-	int16_t                         next;
-	int16_t                         dist;
-	uint8_t                        group;
-	uint8_t                        flags;
-	int16_t                       uv_off;
-
-	void draw(const vertex<int16_t,3>* frames, size_t f0, size_t f1, float alpha = 0)
-	{
-		for(int v = 0;v < 3; v++)
-		{
-			int vi = p.vi[ v ];
-			const vertex<int16_t, 3>& pv0 = frames[f0 * hdr->vcount + vi];
-			const vertex<int16_t, 3>& pv1 = frames[f1 * hdr->vcount + vi];
-			vertex<float, 3>   outv = ((1-alpha) * pv0 + alpha * pv1) * SCALE;
-
-			vertex<float, 2>& outuv = (p.uv[v] + { 0.0f, 4.0f * p.uv_off }) / (vertex<float,2>)vertex<uint16_t,2>({ hdr->tw << 8, hdr->th << 8 });
-			glTexCoord2fv(outuv.data());
-			glVertex3fv(outv.data());
-		}
-		// assert range
-		if(p.vi[3] < hdr->vcount)
-		{
-			int ord[3] = {0,2,3};
-			for(int v = 0; v <3; v++)
-			{
-				int vi=p.vi[ord[v]];
-				vertex<int16_t, 3>& pv0 = frames[f0 * hdr->vcount + vi];
-				vertex<int16_t, 3>& pv1 = frames[f1 * hdr->vcount + vi];
-				vertex<float, 3>  outv = ((1-alpha) * pv0 + alpha * pv1) * SCALE;
-				vertex<float, 2>& outuv = (p.uv[ord[v]] + { 0.0f, 4.0f * p.uv_off }) / (vertex<float,2>)vertex<uint16_t,2>({ hdr->tw << 8, hdr->th << 8 });
-				glTexCoord2fv(outuv.data());
-				glVertex3fv(outv.data());
-			}
-		}
-	}
-};
-
-enum class fmt
-{
-	none =  0 << 0,
-	c3o  =  1 << 0,
-	car  =  1 << 1 + chasm_3o,
-};
-
-struct car
-{
-	struct animap {
-		vertex<uint16_t, 20>              model;
-		array<vertex<uint16_t, 2>, 6> sub_model;
-	} anims;
-	struct gsnd {
-		array<uint16_t,  3>                  id;
-	} gsnd;
-	struct sfx {
-		vertex<uint16_t, 8>                 len;
-		vertex<uint16_t, 8>                 vol;
-	} sfx;
-};
-
-
-struct c3o
-{
-	array<face             ,  400>  faces;
-	array<vertex<int16_t,3>,  256>  overt;
-	array<vertex<int16_t,3>,  256>  rvert;
-	array<vertex<int16_t,3>,  256> shvert;
-	array<vertex<int16_t,2>,  256> scvert;
-	uint16_t                       vcount;
-	uint16_t                       fcount;
-	uint16_t                           th;
-};
-
-template<bool> struct is_car        : car, c3o {};
-template<>     struct is_car<false> :      c3o {};
-template<enum fmt T = fmt::c3o> header_fmt : is_car<F == fmt::car> {};
-
-template<enum fmt T = fmt::c3o>
-struct header : header_fmt<T>
-{
-	constexpr static const uint16_t tw    = 64;
-	uint16_t                        tdim  = th * tw;
-	uint8_t*                        tdata;
-	palette_image<tw>               tpal;
-	texture<tw>                     trgba;
-};
+    // build WAV buffers and apply volume factor
+    uint32_t totalBytes=0; for(int b=0;b<8;b++) totalBytes+=hdr->sfx.len[b];
+    long audio_off=rawSize-totalBytes, pos=audio_off;
+    for(int b=0;b<8;b++){
+        uint16_t len=hdr->sfx.len[b];
+        if(len){
+            uint32_t ws=44+len;
+            uint8_t *buf=malloc(ws);
+            memcpy(buf+0,"RIFF",4);
+            uint32_t chsz=36+len; memcpy(buf+4,&chsz,4);
+            memcpy(buf+8,"WAVEfmt ",8);
+            uint32_t sub1=16; memcpy(buf+16,&sub1,4);
+            uint16_t pcm=1,ch=1; memcpy(buf+20,&pcm,2); memcpy(buf+22,&ch,2);
+            uint32_t rate=11025; memcpy(buf+24,&rate,4);
+            uint32_t brate=rate*ch; memcpy(buf+28,&brate,4);
+            uint16_t align=ch;   memcpy(buf+32,&align,2);
+            uint16_t bps=8;      memcpy(buf+34,&bps,2);
+            memcpy(buf+36,"data",4);
+            uint32_t dlen=len;   memcpy(buf+40,&dlen,4);
+            for(int i=0;i<len;i++){
+                uint8_t s = rawData[pos+i];
+                float centered = (float)s - 128.0f;
+                centered *= VOLUME_FACTOR;
+                int ns = (int)(centered + 128.0f);
+                if(ns<0) ns=0; else if(ns>255) ns=255;
+                buf[44+i] = (uint8_t)ns;
+            }
+            wavBuffers[b]=buf;
+            wavBufferLens[b]=ws;
+        }
+        pos+=len;
+    }
 
 static float animationTime = 0.0f, frameDuration = 0.1f;
 static int animating = 0;
@@ -384,4 +230,4 @@ struct model : std::vector<uint8_t>
 		glutSwapBuffers();
 	}
 };
-
+*/
