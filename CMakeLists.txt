@@ -32,7 +32,7 @@ find_package(OpenGL)
 find_package(GLEW)
 find_package(freeglut)
 
-add_executable( glcar3o src/glcar3o.c )
+add_executable( glcar3o src/glcar3o.cpp )
 target_include_directories( glcar3o PUBLIC
         PUBLIC_HEADER $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
@@ -54,12 +54,5 @@ target_include_directories( 3oviewer PUBLIC
 )
 target_link_libraries( carviewer PUBLIC m OpenGL::GL OpenGL::GLU glut)
 
-add_executable( glcar3opp src/glcar3opp.cpp )
-target_include_directories( glcar3opp PUBLIC
-        PUBLIC_HEADER $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
-target_link_libraries( glcar3opp PUBLIC m OpenGL::GL OpenGL::GLU glut)
-
 install(DIRECTORY include/chasm DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT PUBLIC_HEADER)
-install(TARGETS glcar3o 3oviewer carviewer glcar3opp DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT EXECUTABLES)
+install(TARGETS glcar3o 3oviewer carviewer DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT EXECUTABLES)
