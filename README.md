@@ -19,10 +19,17 @@
 ```c
 #inclue <chasm/chasm.h>
 
-settings.pal = csm_palette_create_fn("assets/chasmpalette.act");
-enum format type = csm_model_format("assets/hog.car");
-csm_model_format_print(type);
-model hog = csm_model_create_fn("assets/hog.car");
+using namespace chasm;
+
+int main(int argc, char** argv)
+{
+    std::vector<path> anim_files;
+    for(size_t i = 2; i < argc; i++)
+        anim_files.push_back(argv[i]);
+
+    model src(argv[1], anim_files);
+    exit(EXIT_SUCCESS);
+}
 ```
 
 ## Links
