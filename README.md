@@ -5,12 +5,11 @@
 ```sh
 ./glcar3o assets/hog.car
 [NFO][PAL] assets/chasmpalette.act
-[NFO][MDL] anim_count: 9 frame_count: 175440
-[NFO][FMT] .CAR - Chasm: The Rift CARacter animation model
+[NFO][MDL][CAR] assets/hog.car
 
-./glcar3o assets/m-star.3o
+./glcar3o assets/m-star.3o assets/m-star.ani
 [NFO][PAL] assets/chasmpalette.act
-[NFO][FMT] .3O  - Chasm: The Rift 3O model
+[NFO][MDL][3O] assets/m-star.3o assets/m-star.ani
 
 ./3oviewer assets/m-star.3o assets/m-star.ani
 ```
