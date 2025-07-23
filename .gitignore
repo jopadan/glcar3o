@@ -19,6 +19,8 @@ CMakeUserPresets.json
 #cmake-build-*
 glcar3o
 glcar3o.exe
+glcar3opp
+glcar3opp.exe
 3oviewer
 3oviewer.exe
 carviewer

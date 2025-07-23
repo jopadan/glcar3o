@@ -14,6 +14,10 @@ set( CMAKE_C_STANDARD 23 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 set( CMAKE_C_EXTENSIONS ON )
 
+set( CMAKE_CXX_STANDARD 23 )
+set( CMAKE_CXX_STANDARD_REQUIRED ON )
+set( CMAKE_CXX_EXTENSIONS ON )
+
 if( NOT CMAKE_BUILD_TYPE STREQUAL Debug )
 add_compile_options(-O3)
 else()
@@ -21,6 +25,7 @@ add_compile_options(-O0 -g)
 endif()
 
 add_compile_options(-march=native)
+add_compile_options(-mfpmath=sse)
 add_compile_options(-D_FILE_OFFSET_BITS=64)
 
 find_package(OpenGL)
@@ -49,4 +54,12 @@ target_include_directories( 3oviewer PUBLIC
 )
 target_link_libraries( carviewer PUBLIC m OpenGL::GL OpenGL::GLU glut)
 
-install(TARGETS glcar3o 3oviewer carviewer DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT EXECUTABLES)
+add_executable( glcar3opp src/glcar3opp.cpp )
+target_include_directories( glcar3opp PUBLIC
+        PUBLIC_HEADER $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+target_link_libraries( glcar3opp PUBLIC m OpenGL::GL OpenGL::GLU glut)
+
+install(DIRECTORY include/chasm DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT PUBLIC_HEADER)
+install(TARGETS glcar3o 3oviewer carviewer glcar3opp DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT EXECUTABLES)

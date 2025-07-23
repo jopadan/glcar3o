@@ -5,6 +5,31 @@
 namespace chasm
 {
 
+struct snd_info
+{
+	std::vector<u8> buf;
+	path  name;
+	snd_info(path src)
+	{
+		if(exists(src))
+		{
+			const size_t len = file_size(src);
+			if(len > 0)
+			{
+				name = src;
+				buf.resize(len);
+				ifstream is(src);
+				if(is.is_open())
+				{
+					for(size_t i = 0; i < len; i++)
+						is >> std::noskipws >> buf[i];
+					is.close();
+				}
+			}
+		}
+	}
+};
+
 struct model : std::vector<uint8_t>
 {
 	static constexpr const f32 SCALE3O = 1.0f/2048.0f;
@@ -19,58 +44,29 @@ struct model : std::vector<uint8_t>
 		}
 		return fmt::none;
 	}
-	enum format fmt;
+	static constexpr size_t cnt(uint8_t* buf, size_t len)
+	{
+		switch(type(buf, len))
+		{
+			case fmt::c3o: return ((struct c3o*)buf)->cnt.vtx;
+			case fmt::car: return ((struct car*)buf)->c3o()->cnt.vtx;
+			case fmt::none: return 0;
+		}
+	}
+
+	enum fmt fmt;
 	struct pos
 	{
 		size_t c3o;
-		size_t tex;
 		size_t ani;
 		size_t snd;
 	} pos;
-	struct ani
+
+	std::vector<ani> anis;
+	model(path src, vector<path> anim_files = {})
 	{
-		std::filesystem::path loc;
-		size_t                len;
-		size_t                off;
-	};
-	std::vector<struct ani> ani;
-	size_t load_ani(std::filesystem::path ani_path)
-	{
-		const size_t len = std::filesystem::file_size(ani_path);
-		if((ani.size() > 0 && ani[ani.back()].len > 0) || ani.empty())
-			ani.resize(ani.size() + 1);
-		ani[ani.back()] = { ani_path, len, ani.size() > 1 ? ani[ani.back() - 1].off + ani[ani.back() - 1].len : 0 };
-
-		if(std::filesystem::exists(ani_path))
-		{
-			std::ifstream is(ani_path);
-			if(is.is_open())
-			{
-				/* verify if first u16 matches vertex count */
-				uint16_t cnt;
-				is >> std::noskipws >> cnt;
-				cnt = le16toh(cnt);
-				if(cnt == c3o()->cnt.vtx)
-					ani[ani.back()].len -= 2;
-				else
-					is.seekg(0, std::ios::beg);
-
-				/* alloc space for animation vertices */
-				this->resize(pos.ani + ani[ani.back()].off + ani[ani.back()].len);
-
-				/* read animation bytes */
-				for(size_t i = this.size() - ani[ani.back()].len; i < (*this).size(); i++)
-					is >> std::noskipws >> (*this)[i];
-				is.close();
-			}
-		}
-		return this->size() - ani[ani.back()].len;
-	}
-
-	model(std::filesystem::path src)
-	{
-		if(!std::filesystem::file_exists(src)) return;
-		(*this).resize(std::filesystem::file_size(src));
+		if(!exists(src)) return;
+		(*this).resize(file_size(src));
 		if((*this).size() > 0)
 		{
 			std::ifstream is(src);
@@ -85,27 +81,27 @@ struct model : std::vector<uint8_t>
 		switch(fmt)
 		{
 			case fmt::c3o:
-				pos.c3o = 0;
-				pos.tex = sizeof(struct c3o);
-				pos.ani = pos.tex + ((struct c3o*)this->data())->tex.h * ((struct c3o*)this->data())->tex.w;
-				pos.snd = load_ani(src.replace_extension(".ani"));
+			{
+				if(anim_files.size() > 0)
+				{
+					for(size_t i = 0; i < anim_files.size(); i++)
+						if(exists(anim_files[i]))
+							anis.push_back(ani(anim_files[i], ((struct c3o*)this->data())->cnt.vtx));
+				}
 				break;
+			}
 			case fmt::car:
-				pos.c3o = sizeof(struct car);
-				pos.tex = sizeof(struct car) + sizeof(struct c3o);
-				pos.ani = pos.tex + ((struct car*)this->data())->tex.h;
-				pos.snd = this->size() - ((struct car*)buf)->sfx.size();
+			{
+				printf("CAR\n");
+				pos.snd = this->size() - ((struct car*)this->data())->sfx.size();
 				break;
+			}
 			case fmt::none:
 			default:
+			printf("NONE\n");
+				break;
 		}
 	}
-
-	struct car& car() { return reinterpret_cast<struct car&>(*(*this)[0      ]); }
-	struct c3o& c3o() { return reinterpret_cast<struct c3o&>(*(*this)[pos.c3o]); }
-	struct tex& tex() { return reinterpret_cast<struct tex&>(*(*this)[pos.tex]); }
-	vertex<i16,3>* ani(size_t i = 0) { return reinterpret_cast<vertex<i16,3>*>(*this)[pos.ani]; }
-	u8* snd(size_t i = 0) { return reinterpret_cast<struct snd&>(*(*this)[pos.snd]); }
 };
 };
 /*
