@@ -92,13 +92,11 @@ struct model : std::vector<uint8_t>
 			}
 			case fmt::car:
 			{
-				printf("CAR\n");
 				pos.snd = this->size() - ((struct car*)this->data())->sfx.size();
 				break;
 			}
 			case fmt::none:
 			default:
-			printf("NONE\n");
 				break;
 		}
 	}
