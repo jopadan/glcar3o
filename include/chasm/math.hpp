@@ -17,7 +17,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glcorearb.h>
-#include <chasm/options.hpp>
 
 using u8  =  uint8_t;
 using i8  =   int8_t;
@@ -76,3 +75,4 @@ struct u8x3 : arr<u8,3>
 {
 };
 
+#include <chasm/options.hpp>

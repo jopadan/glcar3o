@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chasm/math.hpp>
+
 namespace chasm
 {
 	namespace opt
@@ -22,7 +24,7 @@ namespace chasm
 			};
 			namespace tex
 			{
-				constexpr uint16_t w = 64;
+				constexpr u16 w = 64;
 			};
 			namespace filter
 			{

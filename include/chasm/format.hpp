@@ -1,6 +1,5 @@
 #pragma once
 
-#include <chasm/math.hpp>
 #include <chasm/palette.hpp>
 
 namespace chasm
@@ -30,7 +29,7 @@ struct c3o
 	struct cnt              { u16            vtx; u16              pol;                     } cnt;
 	struct tex              { u16 h; static constexpr const u16 w = opt::vid::tex::w; 
 	u8* data()              { return ((u8*)this + sizeof(struct tex)); }                    } tex;
-        bool   fmt (size_t len) { return sizeof(struct c3o) + tex.h * opt::vid::tex::w == len; }
+        bool   fmt (size_t len) { return sizeof(struct c3o) + tex.h * tex.w == len;             }
 };
 
 struct car

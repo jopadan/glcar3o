@@ -1,7 +1,6 @@
 #pragma once
 
 #include <chasm/math.hpp>
-#include <fstream>
 
 using namespace std;
 using namespace std::filesystem;
@@ -9,31 +8,29 @@ using namespace std::filesystem;
 namespace chasm
 {
 
-template<typename T = u8x3, size_t N = 256>
+template<typename T = struct u8x3, size_t N = 256>
 struct palette : arr<T,N>
 {
-	palette(u8* src)
+	palette(path src)
 	{
-		if(src != nullptr)
-			for(size_t i = 0; i < N; i++)
-				(*this)[i] = { src[i * 3 + 0], src[i * 3 + 1], src[i * 3 + 2] };
-	}
-	palette(path& src)
-	{
-		size_t len = file_size(src);
-		if(exists(src) && len > 0)
+		size_t len = 0;
+		if(exists(src))
 		{
-			ifstream is(src);
-
-			if(is.is_open())
+			len = file_size(src);
+			if(len > 0)
 			{
-				for(size_t i = 0; i < 256; i++)
+				ifstream is(src);
+				if(is.is_open())
 				{
-					is >> std::noskipws >> (*this)[i][0];
-					is >> std::noskipws >> (*this)[i][1];
-					is >> std::noskipws >> (*this)[i][2];
+					for(size_t i = 0; i < 256; i++)
+					{
+						is >> std::noskipws >> (*this)[i][0];
+						is >> std::noskipws >> (*this)[i][1];
+						is >> std::noskipws >> (*this)[i][2];
+					}
+					is.close();
 				}
-				is.close();
+				printf("[NFO][VID][PAL] %s\n", src.c_str());
 			}
 		}
 	}
@@ -94,5 +91,8 @@ struct texture : vector<u8x4>
 	}
 };
 
-
+namespace opt::vid
+{
+	palette<u8x3, 256>* pal = new palette<u8x3, 256>("assets/chasmpalette.act");
+};
 };

@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 			anim_files.push_back(argv[i]);
 
 		model src(argv[1], anim_files);
-		printf("[NFO][MDL][%s] %s", src.fmt == fmt::car ? "CAR" : src.fmt == fmt::c3o ? "3O" : "UNK", argv[1]);
+		printf("[NFO][MDL][%s] %s", src.fmt == fmt::car ? "CAR" : src.fmt == fmt::c3o ? " 3O" : "UNK", argv[1]);
 		for(ani& a : src.anis)
 			printf(" %s", a.name.c_str());
 		std::cout << std::endl;
