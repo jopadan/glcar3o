@@ -93,6 +93,7 @@ struct texture : vector<u8x4>
 
 namespace opt::vid
 {
-	palette<u8x3, 256>* pal = new palette<u8x3, 256>("assets/chasmpalette.act");
+	palette<u8x3, 256> def_pal("assets/chasmpalette.act");
+	palette<u8x3, 256>* pal = &def_pal;
 };
 };
