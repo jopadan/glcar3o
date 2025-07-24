@@ -42,7 +42,9 @@ struct car
 	                          return dst;                                                  }} ani;
 	struct GSND             { u16x3 id;                                                     } snd;
 	struct SFX              { u16x8 len; u16x8 vol;
-	u8* data()              { struct car* ptr = (struct car*)((u8*)this) - (sizeof(struct car) - sizeof(this)); return (u8*)ptr + sizeof(struct car) + ptr->c3o()->tex.h + ptr->ani.size() + ptr->sfx.size(); }
+	u8* data()              { struct car* base = ((struct car*)((u8*)this + sizeof(this)
+	                          - sizeof(struct car))); return (u8*)base + sizeof(struct car)
+				  + sizeof(struct c3o) + base->c3o()->tex.h + base->ani.size(); }
 	size_t size()           { return acc(&len[0], &len[0] + 8, 0); }                        } sfx;
         struct c3o*     c3o()   { return ((struct c3o*)((u8*)this + sizeof(struct car)));       }
 	bool   fmt(size_t len)  { return sizeof(struct c3o) + sizeof(struct car) + c3o()->tex.h 
