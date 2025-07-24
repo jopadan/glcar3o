@@ -9,7 +9,7 @@
 
 ./glcar3o assets/m-star.3o assets/m-star.ani
 [NFO][VID][PAL] assets/chasmpalette.act
-[NFO][MDL][3O] assets/m-star.3o assets/m-star.ani
+[NFO][MDL][ 3O] assets/m-star.3o assets/m-star.ani
 
 ./3oviewer assets/m-star.3o assets/m-star.ani
 ```
