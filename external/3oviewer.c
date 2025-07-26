@@ -225,7 +225,6 @@ static void loadANI(const char *fn){
 	fseek(f,0,SEEK_END); sizeAni = ftell(f); fseek(f,0,SEEK_SET);
 	rawAni = malloc(sizeAni); fread(rawAni,1,sizeAni,f); fclose(f);
 	size_t off = (*(uint16_t*)rawAni == vcount) ? 2 : 0;
-	printf("%hu/%hu\n", vcount, *(uint16_t*)rawAni);
 	totalFrames = (sizeAni - off) / (sizeof(VERT) * vcount);
 	animVerts   = (VERT*)(rawAni + off);
 }

@@ -59,7 +59,7 @@ static float modelCenterX, modelCenterY, modelCenterZ;
 static float initRotateX=-90, initRotateY=0, initTranslateX=0, initTranslateY=0, initZoom=2.5f;
 static float rotateX=-90, rotateY=0, translateX=0, translateY=0, zoom=2.5f;
 static int lastMouseX, lastMouseY, leftButtonDown=0;
-static int wireframeMode=0, linearFiltering=0, spinning=1, overlayEnabled=1;
+static int wireframeMode=0, linearFiltering=0, spinning=1, overlayEnabled=1, textureEnabled=1;
 static int winWidth=800, winHeight=600;
 
 static uint8_t* wavBuffers[7] = { NULL };
@@ -201,10 +201,10 @@ void drawOverlay(){
     glColor3f(0,0,0);
     const char* lines[]={
         "F1: Toggle Overlay","Space: Play/Pause","1-0: Select Anim","+/-: Cycle Anim",
-        "R: Toggle Spin","ESC: Reset","W/S: Zoom","A/D: Rotate","TAB: Wireframe",
+        "R: Toggle Spin","T: Toggle Texture","ESC: Reset","W/S: Zoom","A/D: Rotate","TAB: Wireframe",
         "F: Filter","Arrows: Pan","PgUp/Dn: Change BG","Mouse Drag: Rotate","F5-F11: Play Sound"
     };
-    for(int i=0;i<14;i++){
+    for(int i=0;i<15;i++){
         drawBitmapString(10,winHeight-12*(i+1),GLUT_BITMAP_HELVETICA_10,lines[i]);
     }
     glEnable(GL_DEPTH_TEST);
@@ -273,7 +273,7 @@ void display(void){
     size_t f0=anims[currentAnim].start+animFrameIdx;
     size_t f1=anims[currentAnim].start+((animFrameIdx+1)%anims[currentAnim].count);
 
-    glBindTexture(GL_TEXTURE_2D,texID);
+    glEnable(GL_TEXTURE_2D); glBindTexture(GL_TEXTURE_2D,texID);
     glBegin(GL_TRIANGLES);
     for(size_t i=0;i<polygonCount;i++){
         CARPolygon *p=&polygons[i];
@@ -307,7 +307,22 @@ void display(void){
        // drawOverlay();
        // drawModelInfo();
     }
-
+    if(textureEnabled){
+	    glMatrixMode(GL_PROJECTION); glPushMatrix(); glLoadIdentity();
+	    gluOrtho2D(0,winWidth,0,winHeight);
+	    glMatrixMode(GL_MODELVIEW);  glPushMatrix(); glLoadIdentity();
+	    glEnable(GL_TEXTURE_2D); glBindTexture(GL_TEXTURE_2D,texID);
+	    float x0=winWidth-texWidth, y0=winHeight-texHeight, x1=winWidth, y1=winHeight;
+	    glBegin(GL_QUADS);
+	    glTexCoord2f(0,1); glVertex2f(x0,y0);
+	    glTexCoord2f(1,1); glVertex2f(x1,y0);
+	    glTexCoord2f(1,0); glVertex2f(x1,y1);
+	    glTexCoord2f(0,0); glVertex2f(x0,y1);
+	    glEnd();
+	    glDisable(GL_TEXTURE_2D);
+	    glMatrixMode(GL_PROJECTION); glPopMatrix();
+	    glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+    }
     glutSwapBuffers();
 }
 
@@ -386,6 +401,7 @@ void keyboard(unsigned char k,int x,int y){
       case 'd': rotateY+=10; break;
       case 'r': spinning=!spinning; break;
       case ' ': animating=!animating; break;
+      case 't': textureEnabled=!textureEnabled; break;
       case '\t':
         wireframeMode=!wireframeMode;
         glPolygonMode(GL_FRONT_AND_BACK, wireframeMode?GL_LINE:GL_FILL);

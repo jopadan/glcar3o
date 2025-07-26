@@ -44,6 +44,7 @@ using i16x8 __attribute__((vector_size(16))) = i16;
 using u32x4 __attribute__((vector_size(16))) = u32;
 using i32x4 __attribute__((vector_size(16))) = i32;
 using f32x4 __attribute__((vector_size(16))) = f32;
+using f32x2 __attribute__((vector_size(8))) = f32;
 
 template<typename T, size_t N>
 using arr = std::array<T,N>;

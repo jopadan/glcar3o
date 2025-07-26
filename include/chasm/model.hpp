@@ -33,6 +33,21 @@ struct snd_info
 struct model : std::vector<uint8_t>
 {
 	static constexpr const f32 SCALE3O = 1.0f/2048.0f;
+
+	struct fmt_stat
+	{
+		enum fmt    fmt;
+		struct c3o* c3o;
+		u16         cnt;
+		u16          th;
+		struct      len
+		{
+			size_t ani;
+			size_t sfx;
+			size_t total;
+		} len;
+	};
+
 	static constexpr enum fmt type(uint8_t* buf, size_t len)
 	{
 		if(buf != nullptr && len > 0)
@@ -44,16 +59,49 @@ struct model : std::vector<uint8_t>
 		}
 		return fmt::none;
 	}
-	static constexpr size_t cnt(uint8_t* buf, size_t len)
+
+	static constexpr fmt_stat stat(uint8_t* buf, size_t len)
 	{
+		fmt_stat sb;
+		sb.len.total = len;
 		switch(type(buf, len))
 		{
-			case fmt::c3o: return ((struct c3o*)buf)->cnt.vtx;
-			case fmt::car: return ((struct car*)buf)->c3o()->cnt.vtx;
-			case fmt::none: return 0;
+			case fmt::c3o:
+				sb.fmt     = fmt::c3o; sb.c3o = (struct c3o*)buf; sb.cnt = sb.c3o->cnt.vtx;
+				sb.th      = sb.c3o->tex.h;
+				sb.len     = { 0, 0 };
+				return sb;
+			case fmt::car:
+				sb.fmt     = fmt::car; sb.c3o = (struct c3o*)(buf + sizeof(struct car));
+				sb.cnt     = sb.c3o->cnt.vtx; sb.th = sb.c3o->tex.h / opt::vid::tex::w;
+				sb.len     = { .ani = (u16)((struct car*)buf)->ani.size(), .sfx = (u16)((struct car*)buf)->sfx.size() };
+				return sb;
+			default: break;
 		}
+		return {};
 	}
 
+	static constexpr fmt_stat stat(path& src)
+	{
+		fmt_stat sb = {};
+		if(exists(src))
+		{
+			sb.len.total = file_size(src);
+			if(sb.len.total > 0)
+			{
+				ifstream ifs(src);
+				if(ifs.is_open())
+				{
+					std::vector<uint8_t> buf(sb.len.total);
+					for(size_t i = 0; i < sb.len.total; i++)
+						ifs >> std::noskipws >> buf[i];
+					ifs.close();
+					return stat(buf.data(), buf.size());
+				}
+			}
+		}
+		return sb;
+	}
 	enum fmt fmt;
 	struct pos
 	{
@@ -63,6 +111,8 @@ struct model : std::vector<uint8_t>
 	} pos;
 
 	std::vector<ani> anis;
+	palette_image    skin;
+	texture          skin_rgba;
 	model(path src, vector<path> anim_files = {})
 	{
 		if(!exists(src)) return;
@@ -82,6 +132,9 @@ struct model : std::vector<uint8_t>
 		{
 			case fmt::c3o:
 			{
+				struct c3o* c3o = ((struct c3o*)this->data());
+				skin = palette_image(c3o->tex.data(), c3o->tex.h * c3o->tex.w);
+				skin_rgba = texture(skin, opt::vid::pal);
 				if(anim_files.size() > 0)
 				{
 					for(size_t i = 0; i < anim_files.size(); i++)
@@ -92,6 +145,9 @@ struct model : std::vector<uint8_t>
 			}
 			case fmt::car:
 			{
+				struct c3o* c3o = ((struct car*)this->data())->c3o();
+				skin = palette_image(c3o->tex.data(), c3o->tex.h);
+				skin_rgba = texture(skin, opt::vid::pal);
 				pos.snd = this->size() - ((struct car*)this->data())->sfx.size();
 				break;
 			}
