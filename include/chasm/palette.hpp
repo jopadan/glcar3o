@@ -80,19 +80,15 @@ struct texture : vector<u8x4>
 	}
 	void load()
 	{
-		glEnable(GL_TEXTURE_2D);
-		glActiveTexture(GL_TEXTURE0);
 		glGenTextures(1, &id);
-		glBindTexture(GL_TEXTURE_2D, id);
+		bind();
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 		glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, opt::vid::tex::w, this->size() / opt::vid::tex::w, 0, GL_RGBA, GL_UNSIGNED_BYTE, this->data());
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-		GLint f = opt::vid::filter::linear ? GL_LINEAR : GL_NEAREST;
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,f);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,f);
+		update_filter();
 	}
 	void bind()
 	{
@@ -102,13 +98,11 @@ struct texture : vector<u8x4>
 	}
 	void unbind()
 	{
-		glDisable(GL_BLEND);
 		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_DEPTH_TEST);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	void update_filter()
 	{
-		glBindTexture(GL_TEXTURE_2D, id);
 		GLint f = opt::vid::filter::linear ? GL_LINEAR : GL_NEAREST;
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,f);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,f);
@@ -117,16 +111,14 @@ struct texture : vector<u8x4>
 	{
 		f32x2 min = { (float)opt::vid::w-opt::vid::tex::w, (float)opt::vid::h-opt::vid::tex::h };
 		f32x2 max = { (float)opt::vid::w, (float)opt::vid::h };
-		glBindTexture(GL_TEXTURE_2D, id);
-		glEnable(GL_TEXTURE_2D);
+		bind();
 		glBegin(GL_QUADS);
 		glTexCoord2f(0,1); glVertex2f(min[0],min[1]);
 		glTexCoord2f(1,1); glVertex2f(max[0],min[1]);
 		glTexCoord2f(1,0); glVertex2f(max[0],max[1]);
 		glTexCoord2f(0,0); glVertex2f(min[0],max[1]);
 		glEnd();
-		glDisable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		unbind();
 	}
 };
 
